@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances , BangPatterns#-}
 -----------------------------------------------------------------------------
 -- |
 -- Module     : Data.AEq
@@ -86,16 +86,12 @@ identicalComplexIEEE (x1 :+ y1) (x2 :+ y2) =
     (identicalIEEE x1 x2) && (identicalIEEE y1 y2)
 {-# INLINE identicalComplexIEEE #-}
 
+-- lets us L1 style norm on complex numbers for approx equality
 approxEqComplexIEEE :: (IEEE a) => Complex a -> Complex a -> Bool
-approxEqComplexIEEE z1 z2 = let
-    (r1,c1) = polar z1
-    (r2,c2) = polar z2
-    angle = abs (c1 - c2)
-    in ( ( approxEqIEEE r1 r2
-         && (angle < 32*epsilon || angle > 2*(pi - 16*epsilon) || isNaN angle)
-         )
-       || (r1 < epsilon && r2 < epsilon)
-       )
+approxEqComplexIEEE z1@(r1 :+ c1) z2@(r2 :+ c2) =  
+     ( approxEqIEEE r1 r2 && approxEqIEEE c1 c2  )
+                || (magnitude z1 < epsilon && magnitude z2< epsilon)
+        
 {-# INLINE approxEqComplexIEEE #-}
 
 instance AEq Float where
